@@ -30,7 +30,6 @@ use stdClass;
  * Abstract class to define skill points allocation methods, like course and activity.
  */
 abstract class allocation_method {
-
     /**
      * Contains the skill instance data for this allocation method.
      *
@@ -110,6 +109,7 @@ abstract class allocation_method {
         if (empty($this->data) || $this->data == new stdClass()) {
             $this->build_data();
         }
+
         // Return the data.
         return $this->data;
     }

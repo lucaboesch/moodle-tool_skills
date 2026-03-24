@@ -30,13 +30,12 @@ use completion_info;
 use moodle_exception;
 use stdClass;
 
-require_once($CFG->dirroot.'/admin/tool/skills/lib.php');
+require_once($CFG->dirroot . '/admin/tool/skills/lib.php');
 
 /**
  * Manage the skills for courses. Trigger skills to assign point for users.
  */
 class courseskills extends \tool_skills\allocation_method {
-
     /**
      * ID of the course skill record id.
      *
@@ -60,7 +59,6 @@ class courseskills extends \tool_skills\allocation_method {
         parent::__construct(); // Create a parent instance
         // Course id.
         $this->courseid = $courseid;
-
     }
 
     /**
@@ -102,7 +100,7 @@ class courseskills extends \tool_skills\allocation_method {
      * @param int $skillid Id of the skill.
      * @return array
      */
-    public function get_instance_skills($skillid=null): array {
+    public function get_instance_skills($skillid = null): array {
         global $DB;
 
         $condition = ['courseid' => $this->courseid, 'status' => 1];
@@ -121,7 +119,7 @@ class courseskills extends \tool_skills\allocation_method {
      * @param int $skillid Id of the skill.
      * @return array
      */
-    public function get_instance_disabled_skills($skillid=null): array {
+    public function get_instance_disabled_skills($skillid = null): array {
         global $DB;
 
         $condition = ['courseid' => $this->courseid, 'status' => 0];
@@ -160,6 +158,7 @@ class courseskills extends \tool_skills\allocation_method {
         if (!$this->instanceid) {
             throw new moodle_exception('skillcoursenotset', 'tool_skills');
         }
+
         // Fetch the skills course record.
         $record = $DB->get_record('tool_skills_courses', ['id' => $this->instanceid]);
 
@@ -276,17 +275,18 @@ class courseskills extends \tool_skills\allocation_method {
         $transaction = $DB->start_delegated_transaction();
         $updateskill = true; // Update the course skills until it doesn't already awarded.
 
-        if ($record = $DB->get_record('tool_skills_awardlogs', ['userid' => $userid, 'skill' => $csdata->skill,
-            'methodid' => $csdata->id, 'method' => 'course',
-            ])) {
-
+        if (
+            $record = $DB->get_record(
+                'tool_skills_awardlogs',
+                ['userid' => $userid, 'skill' => $csdata->skill, 'methodid' => $csdata->id, 'method' => 'course']
+            )
+        ) {
             // Course points user will earned upon the course completion.
             $coursepoints = $this->get_points_earned_fromcourse();
             $currentpoints = $record->points; // Previous points user earned stored in the log.
             $updateskill = false; // No need to update the points until the course skill is updated in its points.
 
             if ($coursepoints != $currentpoints) {
-
                 $updateskill = true; // Verified the course skill points updated, then update the user points.
                 $skillpoint = $skill->get_user_skill($userid)->points;
                 $skillpoint -= $currentpoints; // Remove the previously awarded course skill points.
@@ -297,9 +297,7 @@ class courseskills extends \tool_skills\allocation_method {
         }
 
         if ($updateskill) {
-
             switch ($csdata->uponcompletion) {
-
                 case skills::COMPLETIONFORCELEVEL:
                     $skill->force_level($this, $csdata->level, $userid);
                     break;
@@ -317,6 +315,7 @@ class courseskills extends \tool_skills\allocation_method {
                     break;
             }
         }
+
         // End the database transaction.
         $transaction->allow_commit();
     }
@@ -339,9 +338,12 @@ class courseskills extends \tool_skills\allocation_method {
         // Start the database transaction.
         $transaction = $DB->start_delegated_transaction();
 
-        if ($record = $DB->get_record('tool_skills_awardlogs', ['userid' => $userid, 'skill' => $csdata->skill,
-            'methodid' => $csdata->id, 'method' => 'course'])) {
-
+        if (
+            $record = $DB->get_record(
+                'tool_skills_awardlogs',
+                ['userid' => $userid, 'skill' => $csdata->skill, 'methodid' => $csdata->id, 'method' => 'course']
+            )
+        ) {
             $currentpoints = $record->points; // Previous points user earned stored in the log.
             $skillpoint = $skill->get_user_skill($userid)->points;
             $skillpoint -= $currentpoints; // Remove the previously awarded course skill points.
@@ -353,7 +355,6 @@ class courseskills extends \tool_skills\allocation_method {
 
         // End the database transaction.
         $transaction->allow_commit();
-
     }
 
     /**

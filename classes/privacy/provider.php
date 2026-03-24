@@ -25,7 +25,6 @@ namespace tool_skills\privacy;
 
 use stdClass;
 use context;
-
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
@@ -42,7 +41,6 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
-
     /**
      * List of used data fields summary meta key.
      *
@@ -50,7 +48,6 @@ class provider implements
      * @return collection
      */
     public static function get_metadata(collection $collection): collection {
-
         // User points table fields meta summary.
         $userpointsmetadata = [
             'userid' => 'privacy:metadata:userpoints:userid',
@@ -127,7 +124,6 @@ class provider implements
         JOIN {tool_skills_awardlogs} tsl ON tsl.method = 'course' AND tsl.methodid = tsc.id
         WHERE c.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
-
     }
 
     /**
@@ -145,14 +141,13 @@ class provider implements
             return false;
         }
 
-        list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        [$userinsql, $userinparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
 
         $params = $userinparams;
         $sql = " userid {$userinsql} ";
 
         $DB->delete_records_select('tool_skills_awardlogs', $sql, $params);
         $DB->delete_records_select('tool_skills_userpoints', $sql, $params);
-
     }
 
     /**
@@ -185,6 +180,7 @@ class provider implements
         if ($context->contextlevel != CONTEXT_COURSE) {
             return;
         }
+
         // Get the course.
         $course = get_course($context->instanceid);
         if (!$course) {
@@ -215,9 +211,10 @@ class provider implements
         if (empty($contextlist->count())) {
             return;
         }
+
         // Context user.
         $user = $contextlist->get_user();
-        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+        [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
 
         $sql = "SELECT *, up.id AS id, tsl.timecreated AS timeawarded, ctx.id AS contextid, tsl.points AS coursepoint
                 FROM {context} ctx
@@ -238,7 +235,7 @@ class provider implements
             get_string('privacy:awardlogs', 'tool_skills'),
             array_filter(
                 $userpoints,
-                function(stdClass $point) use ($contextlist): bool {
+                function (stdClass $point) use ($contextlist): bool {
                     return $point->userid == $contextlist->get_user()->id;
                 }
             ),
@@ -263,8 +260,7 @@ class provider implements
             $context = \context::instance_by_id($contextid);
             $skillsbyid = self::group_by_property($points, 'skill');
             foreach ($skillsbyid as $skillid => $skills) {
-
-                $skilldata = (object) array_map(function($skill) use ($user) {
+                $skilldata = (object) array_map(function ($skill) use ($user) {
                     if ($user->id == $skill->userid) {
                         $skillobj = \tool_skills\skills::get($skill->skill);
                         return [
@@ -306,5 +302,4 @@ class provider implements
             []
         );
     }
-
 }
